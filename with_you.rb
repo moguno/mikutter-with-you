@@ -48,7 +48,6 @@ Plugin.create(:with_you) do
 
   # 設定画面
   settings "いつでもいっしょ" do
-p workarea
     if !patched_ruby_gtk?()
       settings "Ruby/Gtkにパッチが当たっていません！" do
       end
@@ -107,6 +106,7 @@ p workarea
       window.set_decorated(false)
       window.resizable = false
       window.set_size_request(width, UserConfig[:with_you_bheight])
+      window.stick()
 
       # 右側
       if UserConfig[:with_you_position] == 1
