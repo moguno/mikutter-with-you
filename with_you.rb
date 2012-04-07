@@ -2,19 +2,7 @@
 # いつでもいっしょ
 # mikutterといつも一緒にいるためのプラグイン
 
-# Ruby/Gtkにパッチが当たっているか調べる
-def patched_ruby_gtk?()
-  atom = Gdk::Atom.intern("_WITH_YOU_TEST", true)
-  test = [1, 2, 3, 4, 5]
-
-  Gdk::Property::change(Gdk::Window.default_root_window, atom, Gdk::Atom.intern('CARDINAL', true) , 32, :replace, test.pack("LLLLL"))
-  result = Gdk::Property::get(Gdk::Window.default_root_window, atom, Gdk::Atom.intern('CARDINAL', true), false)[1]
-
-  Gdk::Property::delete(Gdk::Window.default_root_window, atom)
-
-  return test === result
-end
-
+require 'netwmstrutpartial'
 
 # デスクトップの有効なサイズを得る
 def get_workarea()
@@ -48,15 +36,10 @@ Plugin.create(:with_you) do
 
   # 設定画面
   settings "いつでもいっしょ" do
-    if !patched_ruby_gtk?()
-      settings "Ruby/Gtkにパッチが当たっていません！" do
-      end
-    else
-      settings "側面に張り付く" do
-        boolean("側面に張り付く", :with_you_side)
-        select("mikutterの位置", :with_you_position, 0 => "左側", 1 => "右側")
-        adjustment("mikutterの幅", :with_you_width, 10, UserConfig[:with_you_bwidth] - UserConfig[:with_you_bleft])
-      end
+    settings "サイドに張り付く" do
+      boolean("サイドに張り付く", :with_you_side)
+      select("mikutterの位置", :with_you_position, 0 => "左側", 1 => "右側")
+      adjustment("mikutterの幅", :with_you_width, 10, UserConfig[:with_you_bwidth] - UserConfig[:with_you_bleft])
     end
 
     boolean("ワークスペースを移動しても付いてくる", :with_you_stick)
@@ -87,12 +70,12 @@ Plugin.create(:with_you) do
       window.skip_taskbar_hint = true
     end
 
-    # 側面に張り付く
+    # サイドに張り付く
     if UserConfig[:with_you_side] == nil
       UserConfig[:with_you_side] = false
     end
 
-    if patched_ruby_gtk? && UserConfig[:with_you_side]
+    if UserConfig[:with_you_side]
       if UserConfig[:with_you_width] == nil
         UserConfig[:with_you_width] = 100
       end
@@ -110,11 +93,11 @@ Plugin.create(:with_you) do
 
       # 右側
       if UserConfig[:with_you_position] == 1
-        set_wm_strut_partial(window.window, [0, width, 0, 0, 0, 0, UserConfig[:with_you_btop], UserConfig[:with_you_bheight] - UserConfig[:with_you_btop], 0, 0, 0, 0])
+        NetWmStrutPartial::set(window.window, 0, width, 0, 0, 0, 0, UserConfig[:with_you_btop], UserConfig[:with_you_bheight] - UserConfig[:with_you_btop], 0, 0, 0, 0)
         window.move(UserConfig[:with_you_bwidth] - width, UserConfig[:with_you_btop])
       # 左側
       else
-        set_wm_strut_partial(window.window, [width, 0, 0, 0, UserConfig[:with_you_btop], UserConfig[:with_you_bheight] + UserConfig[:with_you_btop], 0, 0, 0, 0, 0, 0])
+        NetWmStrutPartial::set(window.window, width, 0, 0, 0, UserConfig[:with_you_btop], UserConfig[:with_you_bheight] + UserConfig[:with_you_btop], 0, 0, 0, 0, 0, 0)
         window.move(0, UserConfig[:with_you_btop])
       end
     end
