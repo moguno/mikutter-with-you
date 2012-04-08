@@ -1,10 +1,12 @@
 #include "ruby.h"
-#include "rbgobject.h"
 #include <gdk/gdk.h>
 
+gpointer rbgobj_instance_from_ruby_object(VALUE obj);
 void Init_netwmstrutpartial(void);
-
 VALUE set_net_wm_strut_partial(VALUE self, VALUE win, VALUE left, VALUE right, VALUE top, VALUE bottom, VALUE left_start_y, VALUE left_end_y, VALUE right_start_y, VALUE right_end_y, VALUE top_start_x, VALUE top_end_x, VALUE bottom_start_x, VALUE bottom_end_x);
+
+#define RVAL2GOBJ(obj)  (rbgobj_instance_from_ruby_object(obj))
+
 
 VALUE set_net_wm_strut_partial(VALUE self, VALUE win, VALUE left, VALUE right, VALUE top, VALUE bottom, VALUE left_start_y, VALUE left_end_y, VALUE right_start_y, VALUE right_end_y, VALUE top_start_x, VALUE top_end_x, VALUE bottom_start_x, VALUE bottom_end_x)
 {
