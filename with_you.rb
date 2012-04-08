@@ -18,16 +18,9 @@ workarea = get_workarea()
 
 
 Plugin.create(:with_you) do
+  LEFT_SIDE = 0
+  RIGHT_SIDE = 1
 
-
-  # 余白領域を確保する（要Ruby Gtk2にパッチ）
-  def set_wm_strut_partial(window, strut)
-    atom = Gdk::Atom.intern("_NET_WM_STRUT_PARTIAL", false)
-    Gdk::Property::change(window, atom, Gdk::Atom.intern('CARDINAL', true) , 32, :replace, strut.pack("LLLLLLLLLLLL"))
-  end
-
-
-#  workarea = get_workarea()
   UserConfig[:with_you_bleft] = workarea[0]
   UserConfig[:with_you_btop] = workarea[1]
   UserConfig[:with_you_bwidth] = workarea[2]
@@ -38,7 +31,7 @@ Plugin.create(:with_you) do
   settings "いつでもいっしょ" do
     settings "サイドに張り付く" do
       boolean("サイドに張り付く", :with_you_side)
-      select("mikutterの位置", :with_you_position, 0 => "左側", 1 => "右側")
+      select("mikutterの位置", :with_you_position, LEFT_SIDE => "左側", RIGHT_SIDE => "右側")
       adjustment("mikutterの幅", :with_you_width, 10, UserConfig[:with_you_bwidth] - UserConfig[:with_you_bleft])
     end
 
@@ -86,19 +79,21 @@ Plugin.create(:with_you) do
 
       width = UserConfig[:with_you_width]
 
-      window.set_decorated(false)
+      window.window.type_hint = Gdk::Window::TYPE_HINT_DESKTOP
+      window.decorated = false
       window.resizable = false
       window.set_size_request(width, UserConfig[:with_you_bheight])
       window.stick()
 
-      # 右側
-      if UserConfig[:with_you_position] == 1
-        NetWmStrutPartial::set(window.window, 0, width, 0, 0, 0, 0, UserConfig[:with_you_btop], UserConfig[:with_you_bheight] - UserConfig[:with_you_btop], 0, 0, 0, 0)
-        window.move(UserConfig[:with_you_bwidth] - width, UserConfig[:with_you_btop])
       # 左側
-      else
+      if UserConfig[:with_you_position] == LEFT_SIDE
         NetWmStrutPartial::set(window.window, width, 0, 0, 0, UserConfig[:with_you_btop], UserConfig[:with_you_bheight] + UserConfig[:with_you_btop], 0, 0, 0, 0, 0, 0)
         window.move(0, UserConfig[:with_you_btop])
+
+      # 右側
+      else
+        NetWmStrutPartial::set(window.window, 0, width, 0, 0, 0, 0, UserConfig[:with_you_btop], UserConfig[:with_you_bheight] - UserConfig[:with_you_btop], 0, 0, 0, 0)
+        window.move(UserConfig[:with_you_bwidth] - width, UserConfig[:with_you_btop])
       end
     end
   end
