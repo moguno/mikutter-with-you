@@ -10,7 +10,7 @@ VALUE set_net_wm_strut_partial(VALUE self, VALUE win, VALUE left, VALUE right, V
 
 VALUE set_net_wm_strut_partial(VALUE self, VALUE win, VALUE left, VALUE right, VALUE top, VALUE bottom, VALUE left_start_y, VALUE left_end_y, VALUE right_start_y, VALUE right_end_y, VALUE top_start_x, VALUE top_end_x, VALUE bottom_start_x, VALUE bottom_end_x)
 {
-	unsigned int params[12];
+	unsigned long params[12];
 
 	params[0] = NUM2INT(left);
 	params[1] = NUM2INT(right);
