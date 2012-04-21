@@ -45,6 +45,22 @@ Plugin.create(:with_you) do
     # メインウインドウを取得
     window = Plugin.filtering(:get_windows, [])[0][0]
 
+#    Thread.start {
+#      while sleep 0.5
+#        atom = Gdk::Atom.intern("_NET_ACTIVE_WINDOW",true)
+#        active_xid = Gdk::Property::get(Gdk::Window.default_root_window, atom, Gdk::Atom.intern('WINDOW', true), false)[1][0]
+
+#        if window.window.xid == active_xid
+#          window.keep_below = false
+#          window.keep_above = true
+#        else
+#          window.keep_below = true
+#          window.keep_above = false
+#        end
+        #
+#      end
+#    }
+
     # ワークスペースを移動しても付いてくる
     if UserConfig[:with_you_stick] == nil
       UserConfig[:with_you_stick] = false
@@ -79,11 +95,12 @@ Plugin.create(:with_you) do
 
       width = UserConfig[:with_you_width]
 
-      window.window.type_hint = Gdk::Window::TYPE_HINT_DESKTOP
       window.decorated = false
       window.resizable = false
       window.set_size_request(width, UserConfig[:with_you_bheight])
       window.stick()
+      #window.window.type_hint = Gdk::Window::TYPE_HINT_DOCK
+      #window.can_focus = true
 
       # 左側
       if UserConfig[:with_you_position] == LEFT_SIDE
