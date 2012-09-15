@@ -14,6 +14,80 @@ def get_workarea()
 end
 
 
+#
+def with_you(window)
+
+#    Thread.start {
+#      while sleep 0.5
+#        atom = Gdk::Atom.intern("_NET_ACTIVE_WINDOW",true)
+#        active_xid = Gdk::Property::get(Gdk::Window.default_root_window, atom, Gdk::Atom.intern('WINDOW', true), false)[1][0]
+
+#        if window.window.xid == active_xid
+#          window.keep_below = false
+#          window.keep_above = true
+#        else
+#          window.keep_below = true
+#          window.keep_above = false
+#        end
+        #
+#      end
+#    }
+
+  # ワークスペースを移動しても付いてくる
+  if UserConfig[:with_you_stick] == nil
+   UserConfig[:with_you_stick] = false
+  end
+
+  if UserConfig[:with_you_stick]
+    window.stick()
+  end
+
+  # タスクバーに表示しない
+  if UserConfig[:with_you_skip_taskbar] == nil
+    UserConfig[:with_you_skip_taskbar] = false
+  end
+
+  if UserConfig[:with_you_skip_taskbar]
+    window.skip_taskbar_hint = true
+  end
+
+  # サイドに張り付く
+  if UserConfig[:with_you_side] == nil
+    UserConfig[:with_you_side] = false
+  end
+
+  if UserConfig[:with_you_side]
+    if UserConfig[:with_you_width] == nil
+      UserConfig[:with_you_width] = 100
+    end
+
+    if UserConfig[:with_you_position] == nil
+      UserConfig[:with_you_position] = 0
+    end
+
+    width = UserConfig[:with_you_width]
+
+    window.decorated = false
+    window.resizable = false
+    window.set_size_request(width, UserConfig[:with_you_bheight])
+    window.stick()
+    #window.window.type_hint = Gdk::Window::TYPE_HINT_DOCK
+    #window.can_focus = true
+
+    # 左側
+    if UserConfig[:with_you_position] == LEFT_SIDE
+      NetWmStrutPartial::set(window.window, width, 0, 0, 0, UserConfig[:with_you_btop], UserConfig[:with_you_bheight] + UserConfig[:with_you_btop], 0, 0, 0, 0, 0, 0)
+      window.move(0, UserConfig[:with_you_btop])
+
+    # 右側
+    else
+      NetWmStrutPartial::set(window.window, 0, width, 0, 0, 0, 0, UserConfig[:with_you_btop], UserConfig[:with_you_bheight] - UserConfig[:with_you_btop], 0, 0, 0, 0)
+      window.move(UserConfig[:with_you_bwidth] - width, UserConfig[:with_you_btop])
+    end
+  end
+end
+
+
 workarea = get_workarea()
 
 
@@ -40,78 +114,32 @@ Plugin.create(:with_you) do
   end
 
 
-  # 起動時処理
+  # 起動時処理(for 0.1)
   onboot do |service|
     # メインウインドウを取得
-    window = Plugin.filtering(:get_windows, [])[0][0]
+    window_tmp = Plugin.filtering(:get_windows, [])
 
-#    Thread.start {
-#      while sleep 0.5
-#        atom = Gdk::Atom.intern("_NET_ACTIVE_WINDOW",true)
-#        active_xid = Gdk::Property::get(Gdk::Window.default_root_window, atom, Gdk::Atom.intern('WINDOW', true), false)[1][0]
-
-#        if window.window.xid == active_xid
-#          window.keep_below = false
-#          window.keep_above = true
-#        else
-#          window.keep_below = true
-#          window.keep_above = false
-#        end
-        #
-#      end
-#    }
-
-    # ワークスペースを移動しても付いてくる
-    if UserConfig[:with_you_stick] == nil
-      UserConfig[:with_you_stick] = false
+    if (window_tmp == nil) || (window_tmp[0][0] == nil) then
+      next
     end
 
-    if UserConfig[:with_you_stick]
-      window.stick()
+    window = window_tmp[0][0]
+
+    with_you(window)
+  end
+
+
+  # 起動時処理(for 0.2)
+  on_window_created do |i_window|
+    # メインウインドウを取得
+    window_tmp = Plugin.filtering(:gui_get_gtk_widget,i_window)
+
+    if (window_tmp == nil) || (window_tmp[0] == nil) then
+      next
     end
 
-    # タスクバーに表示しない
-    if UserConfig[:with_you_skip_taskbar] == nil
-      UserConfig[:with_you_skip_taskbar] = false
-    end
+    window = window_tmp[0]
 
-    if UserConfig[:with_you_skip_taskbar]
-      window.skip_taskbar_hint = true
-    end
-
-    # サイドに張り付く
-    if UserConfig[:with_you_side] == nil
-      UserConfig[:with_you_side] = false
-    end
-
-    if UserConfig[:with_you_side]
-      if UserConfig[:with_you_width] == nil
-        UserConfig[:with_you_width] = 100
-      end
-
-      if UserConfig[:with_you_position] == nil
-        UserConfig[:with_you_position] = 0
-      end
-
-      width = UserConfig[:with_you_width]
-
-      window.decorated = false
-      window.resizable = false
-      window.set_size_request(width, UserConfig[:with_you_bheight])
-      window.stick()
-      #window.window.type_hint = Gdk::Window::TYPE_HINT_DOCK
-      #window.can_focus = true
-
-      # 左側
-      if UserConfig[:with_you_position] == LEFT_SIDE
-        NetWmStrutPartial::set(window.window, width, 0, 0, 0, UserConfig[:with_you_btop], UserConfig[:with_you_bheight] + UserConfig[:with_you_btop], 0, 0, 0, 0, 0, 0)
-        window.move(0, UserConfig[:with_you_btop])
-
-      # 右側
-      else
-        NetWmStrutPartial::set(window.window, 0, width, 0, 0, 0, 0, UserConfig[:with_you_btop], UserConfig[:with_you_bheight] - UserConfig[:with_you_btop], 0, 0, 0, 0)
-        window.move(UserConfig[:with_you_bwidth] - width, UserConfig[:with_you_btop])
-      end
-    end
+    with_you(window)
   end
 end
